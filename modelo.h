@@ -10,5 +10,4 @@ struct Libro {
   int ISBN;
   Ejemplar* ejemplares;
   int numEjemplares;
-  char* fecha;
 };
