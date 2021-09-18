@@ -8,6 +8,6 @@ struct Libro {
   char status;
   char* nombre;
   int ISBN;
-  Ejemplar* ejemplares;
+  struct Ejemplar* ejemplares;
   int numEjemplares;
 };
