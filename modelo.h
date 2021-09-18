@@ -1,7 +1,14 @@
+struct Ejemplar {
+  char* nombre;
+  char status;
+  char* fecha;
+};
+
 struct Libro {
   char status;
   char* nombre;
   int ISBN;
-  int ejemplar;
+  Ejemplar* ejemplares;
+  int numEjemplares;
   char* fecha;
 };
