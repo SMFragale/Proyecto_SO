@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include <stdbool.h>
 
 /*Aquí debería recibir los comandos de la terminal*/
 
@@ -36,11 +37,11 @@ int main(int argc, char *argv[]) {
     }
     else if(argc == 3 && argv[1] == "-p") { //Se requiere el menú pues no hay archivo
         nombrePipe = argv[2];
+        generarMenu();
     }
     else {
         printf("Error en los argumentoss\n");
     }
-
     //Siguientes operaciones
 }
 
@@ -53,5 +54,27 @@ el usuario recibirá una respuesta. El menú le dará al usuario la opción de c
 operaciones o de salir. Si el usuario decide salir se termina el programa. 
 */
 void generarMenu() {
-
+    bool terminar = false;
+    while(!terminar) {
+        printf("Menu Principal\n");
+        printf("1. Devolver un libro\n");
+        printf("2. Renovar un libro\n");
+        printf("3. Solicitar préstamo de un libro\n");
+        printf("4. Salir\n");
+        int respuesta;
+        scanf("%d", &respuesta);
+        if(respuesta == 1) {
+            //realizar proceso de devolver un libro
+        }
+        else if(respuesta == 2) {
+            //realizar proceso de renovar un libro
+        }
+        else if(respuesta == 3) {
+            //realizar proceso de solicitar préstamo
+        }
+        else {
+            //Salir
+            return;
+        }
+    }
 }
