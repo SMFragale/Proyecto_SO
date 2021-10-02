@@ -1,4 +1,6 @@
 
+#include <stdio.h>
+
 /*Aquí debería recibir los comandos de la terminal*/
 
 /*
@@ -34,6 +36,9 @@ int main(int argc, char *argv[]) {
     }
     else if(argc == 3 && argv[1] == "-p") { //Se requiere el menú pues no hay archivo
         nombrePipe = argv[2];
+    }
+    else {
+        printf("Error en los argumentoss\n");
     }
 
     //Siguientes operaciones
