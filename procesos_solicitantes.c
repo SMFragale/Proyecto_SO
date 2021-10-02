@@ -1,6 +1,11 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
+
+void generarMenu(char* nombrePipe);
+void leerProcesos(char* nombrePipe, char* nombreArchivo);
 
 /*Aquí debería recibir los comandos de la terminal*/
 
@@ -31,16 +36,17 @@ solicitante  PS y el proceso Receptor. Todos los PS enviarán sus solicitudes po
 tal y como se muestra en la figura 2.*/
 int main(int argc, char *argv[]) {
     char* nombrePipe;
-    if(argc == 5 && argv[1] == "-i" && argv[3] == "-p") { //Significa que hay un archivo solicitante
+    if(argc == 5) { //Significa que hay un archivo solicitante
         char* nombreArchivo = argv[2];
         nombrePipe = argv[4];
+        leerProcesos(nombrePipe, nombreArchivo);
     }
-    else if(argc == 3 && argv[1] == "-p") { //Se requiere el menú pues no hay archivo
+    else if(argc == 3) { //Se requiere el menú pues no hay archivo
         nombrePipe = argv[2];
-        generarMenu();
+        generarMenu(nombrePipe);
     }
     else {
-        printf("Error en los argumentoss\n");
+        printf("Error en los argumentos\n");
     }
     //Siguientes operaciones
 }
@@ -53,7 +59,7 @@ nombre del libro e ISBN. Ante la operación solicitada y según lo especificado 
 el usuario recibirá una respuesta. El menú le dará al usuario la opción de continuar introduciendo 
 operaciones o de salir. Si el usuario decide salir se termina el programa. 
 */
-void generarMenu() {
+void generarMenu(char* nombrePipe) {
     bool terminar = false;
     while(!terminar) {
         printf("Menu Principal\n");
@@ -74,7 +80,26 @@ void generarMenu() {
         }
         else {
             //Salir
-            return;
+            exit(0);
         }
+    }
+}
+
+/*Realiza lo mismo que el menú, pero en vez de leer las operaciones desde un menú los lee desde un archivo*/
+void leerProcesos(char* nombrePipe, char* nombreArchivo) {
+    FILE *entrada = fopen(nombreArchivo, "r"); //Abre el archivo en forma de solo lectura
+    if(entrada == NULL) {
+        printf("Error, el archivo provisto no existe en la carpeta\n");
+        exit(-1);
+    }
+    char linea[100];
+    //Lee linea por linea. Cada linea corresponde a un proceso con la siguiente forma:
+    //OPERACION, NOMBRE DEL LIBRO, ISBN
+    //EJEMPLO: R, Hamlet, 234
+
+    //Tambíen se podría hacer de forma más sencilla por medio de tokenizer con la coma (,)
+    while(fgets(linea, 100, entrada) != NULL) {
+        printf("%s", linea);
+        //Hacer algo con la línea leída
     }
 }
