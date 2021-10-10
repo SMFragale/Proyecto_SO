@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
     //Crea los pipes para la comunicación con los procesos
     crearFIFO("./pipes/D");
     crearFIFO("./pipes/R");
-    crearFIFO("./pipes/S");
+    crearFIFO("./pipes/P");
 
     //Crea el pipe principal para la recepción de procesos
     crearFIFO(pipeReceptor);
@@ -74,7 +74,7 @@ void generarRespuesta(struct Solicitud sol) {
     }
     char respuesta[300] = "Placeholder";
     if(write(fd, respuesta, 300) == -1) {
-        printf("Ocurrió un error al leer la respuesta");
+        printf("Ocurrió un error al leer la respuesta\n");
     }
     close(fd);
 }

@@ -9,6 +9,7 @@
 #include <fcntl.h>
 #include <sys/wait.h>
 #include <time.h>
+#include <pthread.h>
 /*
 Este archivo contiene funciones y constantes que tanto el receptor como los procesos solicitantes requieren
 */
