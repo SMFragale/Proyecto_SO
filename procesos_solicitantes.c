@@ -1,11 +1,9 @@
-
-#include <stdio.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <string.h>
+#include "intermediario.h"
 
 void generarMenu(char* nombrePipe);
 void leerProcesos(char* nombrePipe, char* nombreArchivo);
+int procesamiento(char* pipe, char operacion, char* nombreLibro, char* ISBN);
+void solicitarRespuesta(char operacion);
 
 /*Aquí debería recibir los comandos de la terminal*/
 
@@ -62,29 +60,58 @@ operaciones o de salir. Si el usuario decide salir se termina el programa.
 void generarMenu(char* nombrePipe) {
     bool terminar = false;
     while(!terminar) {
-        printf("Menu Principal\n");
+        printf("\nMenu Principal\n");
         printf("1. Devolver un libro\n");
         printf("2. Renovar un libro\n");
         printf("3. Solicitar préstamo de un libro\n");
         printf("4. Salir\n");
         int respuesta;
         scanf("%d", &respuesta);
-        if(respuesta == 1) {
-            //realizar proceso de devolver un libro
+        printf("\n");
+        if(respuesta == 1 || respuesta == 2 || respuesta == 3) {
+            //realizar un proceso
+            int id = fork();
+            if(id == -1) {
+                printf("Se produjo un error al crear el nuevo proceso\n");
+            }
+            if(id == 0) { //Proceso hijo
+                int c;
+                while((c = getchar()) != '\n' && c != EOF) {}
+
+                char nomLibro[300];
+                char isbn[10];
+                printf("Ingrese el nombre del libro\n");
+                scanf("%[^\n]s", nomLibro);
+                getchar();
+                printf("Ingrese el ISBN del libro\n");
+                scanf("%[^\n]s", isbn);
+                getchar();
+                char op;
+                if(respuesta == 1) {
+                    op = DEVOLVER_LIBRO[0];
+                }
+                else if(respuesta == 2) {
+                    op = RENOVAR_LIBRO[0];
+                }
+                else {
+                    op = SOLICITAR_PRESTAMO[0];
+                }
+                procesamiento(nombrePipe, op, nomLibro, isbn);
+            }
+            else if(id != 0) { //El proceso padre debe esperar a que el hijo acabe su ejecución
+                wait(NULL);
+            }
         }
-        else if(respuesta == 2) {
-            //realizar proceso de renovar un libro
-        }
-        else if(respuesta == 3) {
-            //realizar proceso de solicitar préstamo
+        else if(respuesta == 4) {
+            exit(0);
         }
         else {
-            //Salir
-            exit(0);
+            printf("Entrada inválida\n");
         }
     }
 }
 
+//TODO
 /*Realiza lo mismo que el menú, pero en vez de leer las operaciones desde un menú los lee desde un archivo*/
 void leerProcesos(char* nombrePipe, char* nombreArchivo) {
     FILE *entrada = fopen(nombreArchivo, "r"); //Abre el archivo en forma de solo lectura
@@ -102,4 +129,52 @@ void leerProcesos(char* nombrePipe, char* nombreArchivo) {
         printf("%s", linea);
         //Hacer algo con la línea leída
     }
+}
+
+/*
+Los 3 procesos se comunican con el servidor (procesos_receptores)
+Por medio de los archivos FIFO que actúan como pipes para mandar
+la información. 
+*/
+int procesamiento(char* pipe, char operacion, char* nombreLibro, char* ISBN) {
+    //No va a entrar hasta que el servidor se conecte al FIFO
+    printf("Estableciendo conexión con el receptor de procesos\n");
+    int fd = open(pipe, O_WRONLY);
+    if(fd == -1) {
+        printf("Se produjo un error al abrir el archivo FIFO\n");
+        return 1;
+    }
+    printf("Se estableció la conexión\n");
+
+    //Crea el paquete
+    struct Solicitud sol;
+    sol.operacion = operacion;
+    strcpy(sol.nombre_libro, nombreLibro);
+    strcpy(sol.ISBN, ISBN);
+
+    //Intenta mandar el paquete (la operación) al receptor
+    if(write(fd, &sol, sizeof(struct Solicitud)) == -1) {
+        printf("Ocurrió un error al mandar la solicitud\n");
+        return 2;
+    }
+    printf("La solicitud se envió con éxito, esperando respuesta del receptor\n");
+    close(fd);
+    solicitarRespuesta(operacion);
+    exit(0);
+}
+
+void solicitarRespuesta(char operacion) {
+    printf("Solicitando respuesta...\n");
+    char pipe[9] = "./pipes/";
+    strncat(pipe, &operacion, 1);
+    int fd = open(pipe, O_RDONLY);
+    if(fd == -1) {
+        printf("Se produjo un error al abrir el archivo FIFO\n");
+    }
+    char respuesta[300];
+    if(read(fd, respuesta, 300) == -1) {
+        printf("Ocurrió un error al leer la respuesta\n");
+    }
+    printf("Respuesta recibida: %s\n", respuesta);
+    close(fd);
 }
