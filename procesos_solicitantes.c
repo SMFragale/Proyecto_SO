@@ -1,9 +1,22 @@
+
 #include "intermediario.h"
 
 void generarMenu(char* nombrePipe);
 void leerProcesos(char* nombrePipe, char* nombreArchivo);
 int procesamiento(char* pipe, char operacion, char* nombreLibro, char* ISBN);
 void solicitarRespuesta(char operacion);
+
+#include <stdio.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <pthread.h>
+
+
+void generarMenu(char* nombrePipe);
+void leerProcesos(char* nombrePipe, char* nombreArchivo);
+void *tfunc (void *args);
 
 /*Aquí debería recibir los comandos de la terminal*/
 
@@ -34,6 +47,9 @@ solicitante  PS y el proceso Receptor. Todos los PS enviarán sus solicitudes po
 tal y como se muestra en la figura 2.*/
 int main(int argc, char *argv[]) {
     char* nombrePipe;
+    int i;
+    pthread_t id_hilo[NTHREADS];
+
     if(argc == 5) { //Significa que hay un archivo solicitante
         char* nombreArchivo = argv[2];
         nombrePipe = argv[4];
@@ -47,6 +63,16 @@ int main(int argc, char *argv[]) {
         printf("Error en los argumentos\n");
     }
     //Siguientes operaciones
+    //Prueba con hilos
+
+    for(int i=0; i<3; i++){
+        pthread_create(&id_hilo[i], NULL, &tfunc, NULL); //Crear hilos
+    }
+
+    for(int i=0; i<3; i++){
+        pthread_join(&id_hilo[i], NULL);
+    }
+    
 }
 
 
@@ -177,4 +203,8 @@ void solicitarRespuesta(char operacion) {
     }
     printf("Respuesta recibida: %s\n", respuesta);
     close(fd);
+}
+
+void *tfunc (void *args){
+    printf("Hello world");
 }
