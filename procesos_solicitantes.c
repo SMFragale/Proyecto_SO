@@ -92,37 +92,28 @@ void generarMenu(char* nombrePipe) {
         printf("\n");
         if(respuesta == 1 || respuesta == 2 || respuesta == 3) {
             //realizar un proceso
-            int id = fork();
-            if(id == -1) {
-                printf("Se produjo un error al crear el nuevo proceso\n");
-            }
-            if(id == 0) { //Proceso hijo
-                int c;
-                while((c = getchar()) != '\n' && c != EOF) {}
+            int c;
+            while((c = getchar()) != '\n' && c != EOF) {}
 
-                char nomLibro[300];
-                char isbn[10];
-                printf("Ingrese el nombre del libro\n");
-                scanf("%[^\n]s", nomLibro);
-                getchar();
-                printf("Ingrese el ISBN del libro\n");
-                scanf("%[^\n]s", isbn);
-                getchar();
-                char op;
-                if(respuesta == 1) {
-                    op = DEVOLVER_LIBRO[0];
-                }
-                else if(respuesta == 2) {
-                    op = RENOVAR_LIBRO[0];
-                }
-                else {
-                    op = SOLICITAR_PRESTAMO[0];
-                }
-                procesamiento(nombrePipe, op, nomLibro, isbn);
+            char nomLibro[300];
+            char isbn[10];
+            printf("Ingrese el nombre del libro\n");
+            scanf("%[^\n]s", nomLibro);
+            getchar();
+            printf("Ingrese el ISBN del libro\n");
+            scanf("%[^\n]s", isbn);
+            getchar();
+            char op;
+            if(respuesta == 1) {
+                op = DEVOLVER_LIBRO[0];
             }
-            else if(id != 0) { //El proceso padre debe esperar a que el hijo acabe su ejecución
-                wait(NULL);
+            else if(respuesta == 2) {
+                op = RENOVAR_LIBRO[0];
             }
+            else {
+                op = SOLICITAR_PRESTAMO[0];
+            }
+            procesamiento(nombrePipe, op, nomLibro, isbn);
         }
         else if(respuesta == 4) {
             exit(0);
@@ -141,16 +132,25 @@ void leerProcesos(char* nombrePipe, char* nombreArchivo) {
         printf("Error, el archivo provisto no existe en la carpeta\n");
         exit(-1);
     }
-    char linea[100];
+    char linea[320];
     //Lee linea por linea. Cada linea corresponde a un proceso con la siguiente forma:
     //OPERACION, NOMBRE DEL LIBRO, ISBN
     //EJEMPLO: R, Hamlet, 234
 
     //Tambíen se podría hacer de forma más sencilla por medio de tokenizer con la coma (,)
-    while(fgets(linea, 100, entrada) != NULL) {
-        printf("%s", linea);
-        //Hacer algo con la línea leída
+    while(fgets(linea, 320, entrada) != NULL) {
+            char* token = strtok(linea, ", ");
+            struct Solicitud sol;
+            sol.operacion = *token;
+            token = strtok(NULL, ",");
+            token++;
+            strcpy(sol.nombre_libro, token);
+            token = strtok(NULL, ", \n");
+            strcpy(sol.ISBN, token);
+            procesamiento(nombrePipe, sol.operacion, sol.nombre_libro, sol.ISBN);
     }
+        //Hacer algo con la línea leída
+        //OJO Manda el nombre del libro con un espacio a la izquierda!
 }
 
 /*
@@ -159,34 +159,36 @@ Por medio de los archivos FIFO que actúan como pipes para mandar
 la información. 
 */
 int procesamiento(char* pipe, char operacion, char* nombreLibro, char* ISBN) {
-    //No va a entrar hasta que el servidor se conecte al FIFO
-    printf("Estableciendo conexión con el receptor de procesos\n");
-    int fd = open(pipe, O_WRONLY);
-    if(fd == -1) {
-        printf("Se produjo un error al abrir el archivo FIFO\n");
-        return 1;
-    }
-    printf("Se estableció la conexión\n");
+    int id = fork();
+    if(id == 0) {
+        //No va a entrar hasta que el servidor se conecte al FIFO
+        int fd = open(pipe, O_WRONLY);
+        if(fd == -1) {
+            printf("Se produjo un error al abrir el archivo FIFO\n");
+            return 1;
+        }
 
-    //Crea el paquete
-    struct Solicitud sol;
-    sol.operacion = operacion;
-    strcpy(sol.nombre_libro, nombreLibro);
-    strcpy(sol.ISBN, ISBN);
+        //Crea el paquete
+        struct Solicitud sol;
+        sol.operacion = operacion;
+        strcpy(sol.nombre_libro, nombreLibro);
+        strcpy(sol.ISBN, ISBN);
 
-    //Intenta mandar el paquete (la operación) al receptor
-    if(write(fd, &sol, sizeof(struct Solicitud)) == -1) {
-        printf("Ocurrió un error al mandar la solicitud\n");
-        return 2;
+        //Intenta mandar el paquete (la operación) al receptor
+        if(write(fd, &sol, sizeof(struct Solicitud)) == -1) {
+            printf("Ocurrió un error al mandar la solicitud\n");
+            return 2;
+        }
+        close(fd);
+        solicitarRespuesta(operacion);
+        exit(0);
     }
-    printf("La solicitud se envió con éxito, esperando respuesta del receptor\n");
-    close(fd);
-    solicitarRespuesta(operacion);
-    exit(0);
+    else {
+        wait(NULL);
+    }
 }
 
 void solicitarRespuesta(char operacion) {
-    printf("Solicitando respuesta...\n");
     char pipe[9] = "./pipes/";
     strncat(pipe, &operacion, 1);
     int fd = open(pipe, O_RDONLY);

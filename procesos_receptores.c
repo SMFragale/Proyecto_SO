@@ -45,7 +45,6 @@ int main(int argc, char *argv[]) {
     crearFIFO(pipeReceptor);
     while(true) {
       //inciar proceso de recepción de solicitudes
-        printf("Esperando solicitudes...\n");
         int fd = open(pipeReceptor, O_RDONLY);
         if(fd == -1) {
             printf("Error al abrir el FIFO\n");
@@ -53,17 +52,19 @@ int main(int argc, char *argv[]) {
         }
         struct Solicitud sol;
         read(fd, &sol, sizeof(struct Solicitud));
-        printf("Se recibió una solicitud!\n");
+        printf("Se recibió una solicitud: ");
         printf("%c, ", sol.operacion);
         printf("%s, %s\n", sol.nombre_libro, sol.ISBN);       
         close(fd); 
 
         generarRespuesta(sol);
-        //TODO Realiza la confirmación con la base de datos
+        //TODO Realiza la confirmación con la base de datos antes de mandar la respuesta. El resultado de esta confirmación se manda en la respuesta
     }
 }
 
 void generarRespuesta(struct Solicitud sol) {
+    char respuesta[300] = "Placeholder";
+    
     //Verificar base de datos...
     char pipe[9] = "./pipes/";
     char o = sol.operacion;
@@ -72,7 +73,7 @@ void generarRespuesta(struct Solicitud sol) {
     if(fd == -1) {
         printf("Se produjo un error al abrir el archivo FIFO\n");
     }
-    char respuesta[300] = "Placeholder";
+    
     if(write(fd, respuesta, 300) == -1) {
         printf("Ocurrió un error al leer la respuesta\n");
     }
