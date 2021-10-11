@@ -63,8 +63,6 @@ int main(int argc, char *argv[]) {
 }
 
 void generarRespuesta(struct Solicitud sol) {
-    char respuesta[300] = "Placeholder";
-    
     //Verificar base de datos...
     char pipe[9] = "./pipes/";
     char o = sol.operacion;
@@ -74,6 +72,7 @@ void generarRespuesta(struct Solicitud sol) {
         printf("Se produjo un error al abrir el archivo FIFO\n");
     }
     
+    char respuesta[300] = "Placeholder";
     if(write(fd, respuesta, 300) == -1) {
         printf("Ocurrió un error al leer la respuesta\n");
     }

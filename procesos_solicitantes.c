@@ -159,33 +159,26 @@ Por medio de los archivos FIFO que actúan como pipes para mandar
 la información. 
 */
 int procesamiento(char* pipe, char operacion, char* nombreLibro, char* ISBN) {
-    int id = fork();
-    if(id == 0) {
-        //No va a entrar hasta que el servidor se conecte al FIFO
-        int fd = open(pipe, O_WRONLY);
-        if(fd == -1) {
-            printf("Se produjo un error al abrir el archivo FIFO\n");
-            return 1;
-        }
-
-        //Crea el paquete
-        struct Solicitud sol;
-        sol.operacion = operacion;
-        strcpy(sol.nombre_libro, nombreLibro);
-        strcpy(sol.ISBN, ISBN);
-
-        //Intenta mandar el paquete (la operación) al receptor
-        if(write(fd, &sol, sizeof(struct Solicitud)) == -1) {
-            printf("Ocurrió un error al mandar la solicitud\n");
-            return 2;
-        }
-        close(fd);
-        solicitarRespuesta(operacion);
-        exit(0);
+    //No va a entrar hasta que el servidor se conecte al FIFO
+    int fd = open(pipe, O_WRONLY);
+    if(fd == -1) {
+        printf("Se produjo un error al abrir el archivo FIFO\n");
+        return 1;
     }
-    else {
-        wait(NULL);
+
+    //Crea el paquete
+    struct Solicitud sol;
+    sol.operacion = operacion;
+    strcpy(sol.nombre_libro, nombreLibro);
+    strcpy(sol.ISBN, ISBN);
+
+    //Intenta mandar el paquete (la operación) al receptor
+    if(write(fd, &sol, sizeof(struct Solicitud)) == -1) {
+        printf("Ocurrió un error al mandar la solicitud\n");
+        return 2;
     }
+    close(fd);
+    solicitarRespuesta(operacion);
 }
 
 void solicitarRespuesta(char operacion) {
