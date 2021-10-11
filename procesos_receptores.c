@@ -43,6 +43,10 @@ int main(int argc, char *argv[]) {
 
     //Crea el pipe principal para la recepción de procesos
     crearFIFO(pipeReceptor);
+
+    //Iniciar hilo
+
+
     while(true) {
       //inciar proceso de recepción de solicitudes
         int fd = open(pipeReceptor, O_RDONLY);
@@ -52,6 +56,7 @@ int main(int argc, char *argv[]) {
         }
         struct Solicitud sol;
         read(fd, &sol, sizeof(struct Solicitud));
+        //Buffer meter sol en el buffer
         printf("Se recibió una solicitud: ");
         printf("%c, ", sol.operacion);
         printf("%s, %s\n", sol.nombre_libro, sol.ISBN);       
@@ -72,6 +77,7 @@ void generarRespuesta(struct Solicitud sol) {
         printf("Se produjo un error al abrir el archivo FIFO\n");
     }
     
+    //Verificar BD
     char respuesta[300] = "Placeholder";
     if(write(fd, respuesta, 300) == -1) {
         printf("Ocurrió un error al leer la respuesta\n");

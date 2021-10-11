@@ -19,6 +19,22 @@ const char DEVOLVER_LIBRO[1] = "D";
 const char RENOVAR_LIBRO[1] = "R";
 const char SOLICITAR_PRESTAMO[1] = "P";
 
+struct Ejemplar {
+  char* nombre;
+  char status;
+  char* fecha;
+};
+
+struct Libro {
+  char status;
+  char* nombre;
+  int ISBN;
+  struct Ejemplar* ejemplares;
+  int numEjemplares;
+};
+
+
+
 //Este struct representa una solicitud para una operación.
 struct Solicitud {
     char operacion;
