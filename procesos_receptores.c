@@ -1,4 +1,7 @@
 #include "intermediario.h"
+#define BUFSIZE 512
+#define BUFCNT  4
+#define N 5
 
 /*
 $ ./receptor –p pipeReceptor –f filedatos [ –s filesalida ] 
@@ -21,7 +24,7 @@ disponibles de cada libro, y si están prestados, la fecha de devolución.
 void generarRespuesta(struct Solicitud sol);
 void cargarBDInicial(char* archivo);
 
-struct Solicitud buffer[5];
+struct Solicitud buffer[N];
 
 int numLibros;
 struct Biblioteca biblioteca;
@@ -47,7 +50,7 @@ void* input(void* args) {
 }
 
 int main(int argc, char *argv[]) {
-
+    int contador = 0, entrada = 0;
     pthread_t id[2];
     pthread_create(&id[0], NULL, input, &buffer);
 
@@ -70,9 +73,7 @@ int main(int argc, char *argv[]) {
     cargarBDInicial(filedatos);
 
     //Crea el pipe principal para la recepción de procesos
-    crearFIFO(pipeReceptor);
-
-    //Iniciar hilo
+    crearFIFO(pipeReceptor);    
 
 
     while(true) {
@@ -86,9 +87,16 @@ int main(int argc, char *argv[]) {
         read(fd, &sol, sizeof(struct Solicitud));
         //Buffer meter sol en el buffer
         printf("Se recibió una solicitud: ");
-        printf("%c, ", sol.operacion);
-        printf("%s, %s\n", sol.nombre_libro, sol.ISBN);       
-        close(fd); 
+        while(1){   //Se ejecuta una vez
+            while(contador == N){
+                buffer[entrada]= sol;   //La variable entra al buffer en el espacio de moemoria "entrada" inicializado en 0
+                entrada = (entrada + 1) % N;    //La variable entrada (indice del buffer) aumenta en relación a N. N es 5
+                contador = contador + 1;    //La variable contador controla la cantidad de ejecuciones del while  
+            }
+            printf("%c, ", sol.operacion);
+            printf("%s, %s\n", sol.nombre_libro, sol.ISBN);       
+            close(fd); 
+        }
 
         generarRespuesta(sol);
         //TODO Realiza la confirmación con la base de datos antes de mandar la respuesta. El resultado de esta confirmación se manda en la respuesta
