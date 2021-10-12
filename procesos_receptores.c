@@ -20,7 +20,7 @@ disponibles de cada libro, y si están prestados, la fecha de devolución.
 
 void generarRespuesta(struct Solicitud sol);
 
-struct Solicitud* buffer;
+struct Solicitud buffer[5];
 
 void* input(void* args) {
     while(1) {
