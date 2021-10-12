@@ -94,13 +94,38 @@ void generarRespuesta(struct Solicitud sol) {
     int fd = open(sol.pipeProceso, O_WRONLY);
     if(fd == -1) {
         printf("Se produjo un error al abrir el archivo FIFO\n");
+        exit(-1);
     }
-    
+       FILE *entrada = fopen("BD.txt", "r"); //Abre el archivo en forma de solo lectura
+    if(entrada == NULL) {
+        printf("Error, el archivo provisto no existe en la carpeta\n");
+        exit(-1);
+    }
+    char linea[320];
+    //Lee linea por linea. Cada linea corresponde a
+    /*nombre del libro, ISBN, numero ejemplares
+        ejemplar1, status, fecha
+        ejemplar2, status, fecha
+          …*/
     //Verificar BD
-    char respuesta[300] = "Placeholder";
+    struct Biblioteca bi;
+      char respuesta[300] = "Placeholder";
     if(write(fd, respuesta, 300) == -1) {
         printf("Ocurrió un error al leer la respuesta\n");
     }
+          while(fgets(linea, 320, entrada) != NULL) {
+            //for recorrrer estructura arreglo de libros
+            //if sol.ISBN==bi.libros[].ISBN
+             //for recorriendo los ejemplares for por la cantidad de ejemplares
+             //if(=="D")mirar si su estado es disponble
+             //char respuesta[300]="Encontrado y disponible";
+              //else no hay ningun disponible
+              //char respuesta[300]="No disponible";
+            //else no se tiene ese libro 
+            //char respuesta[300]="no se encontro el libro";
+
+            printf(respuesta,"\n"); 
+        }
     close(fd);
     unlink(sol.pipeProceso);
 }
