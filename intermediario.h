@@ -40,6 +40,7 @@ struct Solicitud {
     char operacion;
     char nombre_libro[300];
     char ISBN[10];
+    char pipeProceso[20];
 };
 
 /*Intenta crear un FIFO con la operación pasada como parámetro*/

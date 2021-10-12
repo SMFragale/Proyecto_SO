@@ -36,10 +36,6 @@ int main(int argc, char *argv[]) {
         printf("Error en los argumentos\n");
         return -1;
     }
-    //Crea los pipes para la comunicación con los procesos
-    crearFIFO("./pipes/D");
-    crearFIFO("./pipes/R");
-    crearFIFO("./pipes/P");
 
     //Crea el pipe principal para la recepción de procesos
     crearFIFO(pipeReceptor);
@@ -69,10 +65,7 @@ int main(int argc, char *argv[]) {
 
 void generarRespuesta(struct Solicitud sol) {
     //Verificar base de datos...
-    char pipe[9] = "./pipes/";
-    char o = sol.operacion;
-    strncat(pipe, &o, 1);
-    int fd = open(pipe, O_WRONLY);
+    int fd = open(sol.pipeProceso, O_WRONLY);
     if(fd == -1) {
         printf("Se produjo un error al abrir el archivo FIFO\n");
     }
@@ -83,4 +76,5 @@ void generarRespuesta(struct Solicitud sol) {
         printf("Ocurrió un error al leer la respuesta\n");
     }
     close(fd);
+    unlink(sol.pipeProceso);
 }

@@ -4,7 +4,7 @@
 void generarMenu(char* nombrePipe);
 void leerProcesos(char* nombrePipe, char* nombreArchivo);
 int procesamiento(char* pipe, char operacion, char* nombreLibro, char* ISBN);
-void solicitarRespuesta(char operacion);
+void solicitarRespuesta(char* pipe);
 
 void generarMenu(char* nombrePipe);
 void leerProcesos(char* nombrePipe, char* nombreArchivo);
@@ -166,11 +166,20 @@ int procesamiento(char* pipe, char operacion, char* nombreLibro, char* ISBN) {
         return 1;
     }
 
+    char path[20] = "./pipes/";
+    char id[8];
+    //Para crear el fifo de comunicación, se utiliza un pipe identificado con el p_id de este proceso
+    //Para evitar potenciales problemas, una vez el servidor es apagado, los fifos son eliminados
+    pid_t pid = getpid();
+    sprintf(id, "%d", pid);
+    strcat(path, id);
+
     //Crea el paquete
     struct Solicitud sol;
     sol.operacion = operacion;
     strcpy(sol.nombre_libro, nombreLibro);
     strcpy(sol.ISBN, ISBN);
+    strcpy(sol.pipeProceso, path);
 
     //Intenta mandar el paquete (la operación) al receptor
     if(write(fd, &sol, sizeof(struct Solicitud)) == -1) {
@@ -178,13 +187,12 @@ int procesamiento(char* pipe, char operacion, char* nombreLibro, char* ISBN) {
         return 2;
     }
     close(fd);
-    solicitarRespuesta(operacion);
+    solicitarRespuesta(path);
 }
 
-void solicitarRespuesta(char operacion) {
-    char pipe[9] = "./pipes/";
-    strncat(pipe, &operacion, 1);
-    int fd = open(pipe, O_RDONLY);
+void solicitarRespuesta(char* path) {
+    crearFIFO(path);
+    int fd = open(path, O_RDONLY);
     if(fd == -1) {
         printf("Se produjo un error al abrir el archivo FIFO\n");
     }
