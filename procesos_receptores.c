@@ -20,7 +20,33 @@ disponibles de cada libro, y si están prestados, la fecha de devolución.
 
 void generarRespuesta(struct Solicitud sol);
 
+struct Solicitud* buffer;
+
+void* input(void* args) {
+    while(1) {
+        printf("1. Hola Mundo\n");
+        printf("2. Adios mundo cruel\n");
+        printf("4. Salir\n");
+        int val;
+        scanf("%i", &val);
+        if(val == 1) {
+            printf("Usted ingresó 1\n");
+        }
+        else if(val == 4) {
+            printf("Adiós\n");
+            exit(0);
+        }
+        else {
+            printf("Usted no ingresó 1\n");
+        }
+    }
+}
+
 int main(int argc, char *argv[]) {
+
+    pthread_t id[2];
+    pthread_create(&id[0], NULL, input, &buffer);
+
     char* pipeReceptor;
     char* filedatos;
     if(argc == 7) { //Indica que entran todos los comandos

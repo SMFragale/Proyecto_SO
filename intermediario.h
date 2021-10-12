@@ -35,7 +35,7 @@ struct Libro {
 
 
 struct Biblioteca{
-struct Libro* libros
+  struct Libro* libros;
 };
 //Este struct representa una solicitud para una operación.
 struct Solicitud {
