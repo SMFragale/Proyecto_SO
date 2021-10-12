@@ -19,8 +19,12 @@ disponibles de cada libro, y si están prestados, la fecha de devolución.
 */
 
 void generarRespuesta(struct Solicitud sol);
+void cargarBDInicial(char* archivo);
 
 struct Solicitud buffer[5];
+
+int numLibros;
+struct Biblioteca biblioteca;
 
 void* input(void* args) {
     while(1) {
@@ -63,6 +67,8 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
+    cargarBDInicial(filedatos);
+
     //Crea el pipe principal para la recepción de procesos
     crearFIFO(pipeReceptor);
 
@@ -96,36 +102,150 @@ void generarRespuesta(struct Solicitud sol) {
         printf("Se produjo un error al abrir el archivo FIFO\n");
         exit(-1);
     }
-       FILE *entrada = fopen("BD.txt", "r"); //Abre el archivo en forma de solo lectura
+    char respuesta[300];
+    int encontrado = 0;
+    struct Libro libro;
+    if(sol.operacion == 'D') {
+        for(int i = 0; i < numLibros && encontrado == 0; i++) {
+            struct Libro l = biblioteca.libros[i];
+            if(strcmp(l.ISBN, sol.ISBN) == 0) {
+                encontrado = 1;
+                libro = l;
+            }
+        }
+        if(encontrado == 0) {
+            strcpy(respuesta, "El libro con el ISBN dado no se encontró en la base de datos");
+        }
+        else {
+            strcpy(respuesta, "La devolución del libro está en proceso");
+        }
+    }
+    else if(sol.operacion == 'R') {
+        for(int i = 0; i < numLibros && encontrado == 0; i++) {
+            struct Libro l = biblioteca.libros[i];
+            if(strcmp(l.ISBN, sol.ISBN) == 0) {
+                encontrado = 1;
+                libro = l;
+            }
+        }
+        if(encontrado == 0) {
+            strcpy(respuesta, "El libro con el ISBN dado no se encontró en la base de datos");
+        }
+        else {
+            strcpy(respuesta, "La renovación de su libro está en proceso");
+        }
+    }
+    else {
+        for(int i = 0; i < numLibros && encontrado == 0; i++) {
+            struct Libro l = biblioteca.libros[i];
+            if(strcmp(l.ISBN, sol.ISBN) == 0) {
+                encontrado = 1;
+                libro = l;
+            }
+        }
+        if(encontrado == 0) {
+            strcpy(respuesta, "El libro con el ISBN dado no se encontró en la base de datos");
+        }
+        else {
+            encontrado = 0;
+            for(int i = 0; i < libro.numEjemplares && encontrado == 0; i++) {
+                struct Ejemplar ejemplar = libro.ejemplares[i];
+                if(ejemplar.status == 'D') {
+                    ejemplar.status = 'P';
+                    encontrado = 1;
+                }
+            }
+            if(encontrado == 1) {
+                strcpy(respuesta, "El préstamo se logró con éxito");
+            }
+            else{
+                strcpy(respuesta, "No hay ejemplares disponibles de este libro");
+            }
+        }
+    }
+
+    if(write(fd, respuesta, 300) == -1) {
+        printf("Hubo un error al mandar la respuesta");
+    }
+
+    close(fd);
+    unlink(sol.pipeProceso);
+}
+
+void cargarBDInicial(char* archivo) {
+    FILE *entrada = fopen(archivo, "r"); //Abre el archivo en forma de solo lectura
     if(entrada == NULL) {
         printf("Error, el archivo provisto no existe en la carpeta\n");
         exit(-1);
     }
     char linea[320];
-    //Lee linea por linea. Cada linea corresponde a
-    /*nombre del libro, ISBN, numero ejemplares
-        ejemplar1, status, fecha
-        ejemplar2, status, fecha
-          …*/
-    //Verificar BD
-    struct Biblioteca bi;
-      char respuesta[300] = "Placeholder";
-    if(write(fd, respuesta, 300) == -1) {
-        printf("Ocurrió un error al leer la respuesta\n");
-    }
-          while(fgets(linea, 320, entrada) != NULL) {
-            //for recorrrer estructura arreglo de libros
-            //if sol.ISBN==bi.libros[].ISBN
-             //for recorriendo los ejemplares for por la cantidad de ejemplares
-             //if(=="D")mirar si su estado es disponble
-             //char respuesta[300]="Encontrado y disponible";
-              //else no hay ningun disponible
-              //char respuesta[300]="No disponible";
-            //else no se tiene ese libro 
-            //char respuesta[300]="no se encontro el libro";
+    //Lee linea por linea. Cada linea corresponde a un proceso con la siguiente forma:
+    //OPERACION, NOMBRE DEL LIBRO, ISBN
+    //EJEMPLO: R, Hamlet, 234
 
-            printf(respuesta,"\n"); 
+    //Tambíen se podría hacer de forma más sencilla por medio de tokenizer con la coma (,)
+    numLibros = 0;  
+    while(fgets(linea, 320, entrada) != NULL) {
+        struct Libro libro;
+        char* token = strtok(linea, ",");
+        strcpy(libro.nombre, token);
+        token = strtok(NULL, ",");
+        token++;
+        strcpy(libro.ISBN, token);
+        //strcpy(libro.numEjemplares, token);
+        token = strtok(NULL, ", \n");
+        int num = atoi(token);
+        libro.numEjemplares = num;
+        libro.ejemplares = malloc(sizeof(struct Ejemplar)*num);
+        numLibros++;
+        for(int i = 0; i < num; i++) {
+            struct Ejemplar ejemplar;
+            fgets(linea, 320, entrada);
+            token = strtok(linea, ",");
+            token = strtok(NULL, ",");
+            token++;
+            ejemplar.status = *token;
+            token = strtok(NULL, ",\n");
+            token++;
+            strcpy(ejemplar.fecha, token);
+            libro.ejemplares[i] = ejemplar;
         }
-    close(fd);
-    unlink(sol.pipeProceso);
+    }
+    biblioteca.libros = malloc(sizeof(struct Libro)*numLibros);
+    fclose(entrada);
+
+    entrada = fopen(archivo, "r"); //Abre el archivo en forma de solo lectura
+    if(entrada == NULL) {
+        printf("Error, el archivo provisto no existe en la carpeta\n");
+        exit(-1);
+    }
+    int pos = 0;
+    while(fgets(linea, 320, entrada) != NULL) {
+        struct Libro libro;
+        char* token = strtok(linea, ",");
+        strcpy(libro.nombre, token);
+        token = strtok(NULL, ",");
+        token++;
+        strcpy(libro.ISBN, token);
+        //strcpy(libro.numEjemplares, token);
+        token = strtok(NULL, ", \n");
+        int num = atoi(token);
+        libro.numEjemplares = num;
+        libro.ejemplares = malloc(sizeof(struct Ejemplar)*num);
+        numLibros++;
+        for(int i = 0; i < num; i++) {
+            struct Ejemplar ejemplar;
+            fgets(linea, 320, entrada);
+            token = strtok(linea, ",");
+            token = strtok(NULL, ",");
+            token++;
+            ejemplar.status = *token;
+            token = strtok(NULL, ",\n");
+            token++;
+            strcpy(ejemplar.fecha, token);
+            libro.ejemplares[i] = ejemplar;
+        }
+        biblioteca.libros[pos++] = libro;
+    }
+    fclose(entrada);
 }

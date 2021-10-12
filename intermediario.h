@@ -20,15 +20,13 @@ const char RENOVAR_LIBRO[1] = "R";
 const char SOLICITAR_PRESTAMO[1] = "P";
 
 struct Ejemplar {
-  char* nombre;
   char status;
-  char* fecha;
+  char fecha[10];
 };
 
 struct Libro {
-  char status;
-  char* nombre;
-  int ISBN;
+  char nombre[300];
+  char ISBN[10];
   struct Ejemplar* ejemplares;
   int numEjemplares;
 };
