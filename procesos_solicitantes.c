@@ -202,8 +202,9 @@ void solicitarRespuesta(char* path) {
     }
     printf("Respuesta recibida: %s\n", respuesta);
     close(fd);
+    unlink(path);
 }
 
-void *tfunc (void *args){
+void *tfunc (void *args) {
     printf("Hello world");
 }
