@@ -148,7 +148,8 @@ void generarRespuesta(struct Solicitud sol) {
         }
     }
     else {
-        for(int i = 0; i < numLibros && encontrado == 0; i++) {
+        int i;
+        for(i = 0; i < numLibros && encontrado == 0; i++) {
             struct Libro l = biblioteca.libros[i];
             if(strcmp(l.ISBN, sol.ISBN) == 0) {
                 encontrado = 1;
@@ -160,10 +161,11 @@ void generarRespuesta(struct Solicitud sol) {
         }
         else {
             encontrado = 0;
-            for(int i = 0; i < libro.numEjemplares && encontrado == 0; i++) {
+            int j;
+            for(j = 0; j < libro.numEjemplares && encontrado == 0; j++) {
                 struct Ejemplar ejemplar = libro.ejemplares[i];
                 if(ejemplar.status == 'D') {
-                    ejemplar.status = 'P';
+                    biblioteca.libros[i].ejemplares[j].status = 'P';
                     encontrado = 1;
                 }
             }
@@ -181,7 +183,7 @@ void generarRespuesta(struct Solicitud sol) {
     }
 
     close(fd);
-    unlink(sol.pipeProceso);
+    //unlink(sol.pipeProceso);
 }
 
 void cargarBDInicial(char* archivo) {
@@ -258,6 +260,5 @@ void cargarBDInicial(char* archivo) {
         }
         biblioteca.libros[pos++] = libro;
     }
-    sleep(1);
     fclose(entrada);
 }

@@ -201,8 +201,8 @@ void solicitarRespuesta(char* path) {
         printf("Ocurrió un error al leer la respuesta\n");
     }
     printf("Respuesta recibida: %s\n", respuesta);
-    sleep(1);
     close(fd);
+    sleep(2);
     unlink(path);
 }
 
