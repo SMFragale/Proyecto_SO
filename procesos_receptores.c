@@ -258,5 +258,6 @@ void cargarBDInicial(char* archivo) {
         }
         biblioteca.libros[pos++] = libro;
     }
+    sleep(1);
     fclose(entrada);
 }
