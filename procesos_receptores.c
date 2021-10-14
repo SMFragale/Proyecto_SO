@@ -31,20 +31,21 @@ struct Biblioteca biblioteca;
 
 void* input(void* args) {
     while(1) {
-        printf("1. Hola Mundo\n");
-        printf("2. Adios mundo cruel\n");
-        printf("4. Salir\n");
-        int val;
-        scanf("%i", &val);
-        if(val == 1) {
-            printf("Usted ingresó 1\n");
-        }
-        else if(val == 4) {
+        char val;
+        scanf("%c", &val);
+        if(val == 's') {
             printf("Adiós\n");
             exit(0);
         }
-        else {
-            printf("Usted no ingresó 1\n");
+        else if(val == 'r') {
+            for(int i = 0; i < numLibros; i++) {
+                struct Libro l = biblioteca.libros[i];
+                printf("Libro: %s, ISBN: %s\n", l.nombre, l.ISBN);
+                for(int j = 0; j < l.numEjemplares; j++) {
+                    struct Ejemplar e = l.ejemplares[j];
+                    printf("   %i, status: %c, fecha: %s\n", j+1, e.status, e.fecha);
+                }
+            }
         }
     }
 }
@@ -87,6 +88,8 @@ int main(int argc, char *argv[]) {
         read(fd, &sol, sizeof(struct Solicitud));
         //Buffer meter sol en el buffer
         printf("Se recibió una solicitud: ");
+
+        /**
         while(1){   //Se ejecuta una vez
             while(contador == N){
                 buffer[entrada]= sol;   //La variable entra al buffer en el espacio de moemoria "entrada" inicializado en 0
@@ -97,6 +100,7 @@ int main(int argc, char *argv[]) {
             printf("%s, %s\n", sol.nombre_libro, sol.ISBN);       
             close(fd); 
         }
+        **/
 
         generarRespuesta(sol);
         //TODO Realiza la confirmación con la base de datos antes de mandar la respuesta. El resultado de esta confirmación se manda en la respuesta
@@ -240,7 +244,6 @@ void cargarBDInicial(char* archivo) {
         int num = atoi(token);
         libro.numEjemplares = num;
         libro.ejemplares = malloc(sizeof(struct Ejemplar)*num);
-        numLibros++;
         for(int i = 0; i < num; i++) {
             struct Ejemplar ejemplar;
             fgets(linea, 320, entrada);
