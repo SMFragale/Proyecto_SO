@@ -177,6 +177,9 @@ int procesamiento(char* pipe, char operacion, char* nombreLibro, char* ISBN) {
 void solicitarRespuesta(char* path) {
     crearFIFO(path);
     sem_t *semaforo = sem_open(SEMAFORO_SR, 0);
+    if(semaforo == SEM_FAILED) {
+        printf("Se produjo un error con el semáforo\n");
+    }
     sem_post(semaforo);
     int fd = open(path, O_RDONLY);
     if(fd == -1) {
