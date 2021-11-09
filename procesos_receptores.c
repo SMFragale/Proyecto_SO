@@ -114,6 +114,7 @@ int main(int argc, char *argv[]) {
 }
 
 void generarRespuesta(struct Solicitud sol) {
+    imprimir_biblioteca();
     sem_t *semaforo = sem_open(SEMAFORO_SR, 0);
     sem_wait(semaforo);
     //Verificar base de datos...
@@ -155,13 +156,14 @@ void generarRespuesta(struct Solicitud sol) {
             strcpy(respuesta, "La renovación de su libro está en proceso");
         }
     }
-    else {
-        int i;
-        for(i = 0; i < numLibros && encontrado == 0; i++) {
+    else { //Solicitar
+        int indice_encontrado = -1;
+        for(int i = 0; i < numLibros && encontrado == 0; i++) {
             struct Libro l = biblioteca.libros[i];
             if(strcmp(l.ISBN, sol.ISBN) == 0) {
                 encontrado = 1;
                 libro = l;
+                indice_encontrado = i;
             }
         }
         if(encontrado == 0) {
@@ -171,9 +173,9 @@ void generarRespuesta(struct Solicitud sol) {
             encontrado = 0;
             int j;
             for(j = 0; j < libro.numEjemplares && encontrado == 0; j++) {
-                struct Ejemplar ejemplar = libro.ejemplares[i];
+                struct Ejemplar ejemplar = libro.ejemplares[j];
                 if(ejemplar.status == 'D') {
-                    biblioteca.libros[i].ejemplares[j].status = 'P';
+                    biblioteca.libros[indice_encontrado].ejemplares[j].status = 'P';
                     encontrado = 1;
                 }
             }
