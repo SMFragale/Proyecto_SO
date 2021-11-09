@@ -10,9 +10,11 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <pthread.h>
+#include <semaphore.h>
 /*
 Este archivo contiene funciones y constantes que tanto el receptor como los procesos solicitantes requieren
 */
+#define SEMAFORO_SR "/semaforo_sr"
 
 //Operaciones:
 const char DEVOLVER_LIBRO[1] = "D";

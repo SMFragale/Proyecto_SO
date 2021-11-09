@@ -28,6 +28,7 @@ struct Solicitud buffer[N];
 
 int numLibros;
 struct Biblioteca biblioteca;
+void imprimir_biblioteca();
 
 void* input(void* args) {
     while(1) {
@@ -38,19 +39,24 @@ void* input(void* args) {
             exit(0);
         }
         else if(val == 'r') {
-            for(int i = 0; i < numLibros; i++) {
-                struct Libro l = biblioteca.libros[i];
-                printf("Libro: %s, ISBN: %s\n", l.nombre, l.ISBN);
-                for(int j = 0; j < l.numEjemplares; j++) {
-                    struct Ejemplar e = l.ejemplares[j];
-                    printf("   %i, status: %c, fecha: %s\n", j+1, e.status, e.fecha);
-                }
-            }
+            imprimir_biblioteca();
+        }
+    }
+}
+
+void imprimir_biblioteca() {
+    for(int i = 0; i < numLibros; i++) {
+        struct Libro l = biblioteca.libros[i];
+        printf("Libro: %s, ISBN: %s\n", l.nombre, l.ISBN);
+        for(int j = 0; j < l.numEjemplares; j++) {
+            struct Ejemplar e = l.ejemplares[j];
+            printf("   %i, status: %c, fecha: %s\n", j+1, e.status, e.fecha);
         }
     }
 }
 
 int main(int argc, char *argv[]) {
+    sem_open(SEMAFORO_SR, O_CREAT, 0644, 0);
     int contador = 0, entrada = 0;
     pthread_t id[2];
     pthread_create(&id[0], NULL, input, &buffer);
@@ -108,11 +114,13 @@ int main(int argc, char *argv[]) {
 }
 
 void generarRespuesta(struct Solicitud sol) {
+    sem_t *semaforo = sem_open(SEMAFORO_SR, 0);
+    sem_wait(semaforo);
     //Verificar base de datos...
     int fd = open(sol.pipeProceso, O_WRONLY);
     if(fd == -1) {
         printf("Se produjo un error al abrir el archivo FIFO\n");
-        exit(-1);
+        return;
     }
     char respuesta[300];
     int encontrado = 0;
@@ -177,13 +185,12 @@ void generarRespuesta(struct Solicitud sol) {
             }
         }
     }
+    imprimir_biblioteca();
 
     if(write(fd, respuesta, 300) == -1) {
         printf("Hubo un error al mandar la respuesta");
     }
-
     close(fd);
-    //unlink(sol.pipeProceso);
 }
 
 void cargarBDInicial(char* archivo) {
@@ -207,7 +214,7 @@ void cargarBDInicial(char* archivo) {
         token++;
         strcpy(libro.ISBN, token);
         //strcpy(libro.numEjemplares, token);
-        token = strtok(NULL, ", \n");
+        token = strtok(NULL, ", \r\n");
         int num = atoi(token);
         libro.numEjemplares = num;
         libro.ejemplares = malloc(sizeof(struct Ejemplar)*num);

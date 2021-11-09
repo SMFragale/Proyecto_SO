@@ -40,34 +40,18 @@ tal y como se muestra en la figura 2.*/
 int main(int argc, char *argv[]) {
     char* nombrePipe;
     int i;
-    //Esto estaba generando errores
-    //pthread_t id_hilo[NTHREADS];
-
-    if(argc == 5) { //Significa que hay un archivo solicitante
+    if(argc == 5) {
         char* nombreArchivo = argv[2];
         nombrePipe = argv[4];
         leerProcesos(nombrePipe, nombreArchivo);
     }
-    else if(argc == 3) { //Se requiere el menú pues no hay archivo
+    else if(argc == 3) {
         nombrePipe = argv[2];
         generarMenu(nombrePipe);
     }
     else {
         printf("Error en los argumentos\n");
     }
-    //Siguientes operaciones
-    //Prueba con hilos
-    /* Este código genera errores
-    for(int i=0; i<3; i++){
-        pthread_create(&id_hilo[i], NULL, &tfunc, NULL); //Crear hilos
-    }
-
-    
-    for(int i=0; i<3; i++){
-        pthread_join(&id_hilo[i], NULL);
-    }
-    */
-    
     
 }
 
@@ -192,6 +176,8 @@ int procesamiento(char* pipe, char operacion, char* nombreLibro, char* ISBN) {
 
 void solicitarRespuesta(char* path) {
     crearFIFO(path);
+    sem_t *semaforo = sem_open(SEMAFORO_SR, 0);
+    sem_post(semaforo);
     int fd = open(path, O_RDONLY);
     if(fd == -1) {
         printf("Se produjo un error al abrir el archivo FIFO\n");
@@ -202,7 +188,6 @@ void solicitarRespuesta(char* path) {
     }
     printf("Respuesta recibida: %s\n", respuesta);
     close(fd);
-    sleep(2);
     unlink(path);
 }
 
