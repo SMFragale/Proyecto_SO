@@ -114,7 +114,6 @@ int main(int argc, char *argv[]) {
 }
 
 void generarRespuesta(struct Solicitud sol) {
-    imprimir_biblioteca();
     sem_t *semaforo = sem_open(SEMAFORO_SR, 0);
     sem_wait(semaforo);
     //Verificar base de datos...
@@ -187,7 +186,6 @@ void generarRespuesta(struct Solicitud sol) {
             }
         }
     }
-    imprimir_biblioteca();
 
     if(write(fd, respuesta, 300) == -1) {
         printf("Hubo un error al mandar la respuesta");

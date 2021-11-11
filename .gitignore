@@ -1,3 +1,6 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/tasks.json
+manejador_BD.c
+ps
+procesos_solicitantes
