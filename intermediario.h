@@ -15,6 +15,7 @@
 Este archivo contiene funciones y constantes que tanto el receptor como los procesos solicitantes requieren
 */
 #define SEMAFORO_SR "/semaforo_sr"
+#define BD "BD.txt"
 
 //Operaciones:
 const char DEVOLVER_LIBRO[1] = "D";
@@ -36,6 +37,7 @@ struct Libro {
 
 struct Biblioteca{
   struct Libro* libros;
+  int numLibros;
 };
 //Este struct representa una solicitud para una operación.
 struct Solicitud {

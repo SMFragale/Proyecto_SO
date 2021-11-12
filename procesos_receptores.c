@@ -21,14 +21,114 @@ archivo  como  quedó  la  BD:  cuál  es  el estado  de  cada  libro,  cuantos 
 disponibles de cada libro, y si están prestados, la fecha de devolución. 
 */
 
-void generarRespuesta(struct Solicitud sol);
+void generarRespuesta(struct Solicitud sol, char* fileDatos);
 void cargarBDInicial(char* archivo);
 
 struct Solicitud buffer[N];
 
-int numLibros;
+char* archivo;
 struct Biblioteca biblioteca;
 void imprimir_biblioteca();
+void actualizarBD(struct Biblioteca biblioteca, char* fileDatos);
+
+void cargarBDInicial(char* archivo) {
+    FILE *entrada = fopen(archivo, "r"); //Abre el archivo en forma de solo lectura
+    if(entrada == NULL) {
+        printf("Error, el archivo provisto no existe en la carpeta\n");
+        exit(-1);
+    }
+    char linea[320];
+    //Lee linea por linea. Cada linea corresponde a un proceso con la siguiente forma:
+    //OPERACION, NOMBRE DEL LIBRO, ISBN
+    //EJEMPLO: R, Hamlet, 234
+
+    //Tambíen se podría hacer de forma más sencilla por medio de tokenizer con la coma (,)
+    biblioteca.numLibros = 0;  
+    while(fgets(linea, 320, entrada) != NULL) {
+        struct Libro libro;
+        char* token = strtok(linea, ",");
+        strcpy(libro.nombre, token);
+        token = strtok(NULL, ",");
+        token++;
+        strcpy(libro.ISBN, token);
+        //strcpy(libro.numEjemplares, token);
+        token = strtok(NULL, ", \r\n");
+        int num = atoi(token);
+        libro.numEjemplares = num;
+        libro.ejemplares = malloc(sizeof(struct Ejemplar)*num);
+        biblioteca.numLibros++;
+        for(int i = 0; i < num; i++) {
+            struct Ejemplar ejemplar;
+            fgets(linea, 320, entrada);
+            token = strtok(linea, ",");
+            token = strtok(NULL, ",");
+            token++;
+            ejemplar.status = *token;
+            token = strtok(NULL, ",\n");
+            token++;
+            strcpy(ejemplar.fecha, token);
+            libro.ejemplares[i] = ejemplar;
+        }
+    }
+    biblioteca.libros = malloc(sizeof(struct Libro)*biblioteca.numLibros);
+    fclose(entrada);
+
+    entrada = fopen(archivo, "r"); //Abre el archivo en forma de solo lectura
+    if(entrada == NULL) {
+        printf("Error, el archivo provisto no existe en la carpeta\n");
+        exit(-1);
+    }
+    int pos = 0;
+    while(fgets(linea, 320, entrada) != NULL) {
+        struct Libro libro;
+        char* token = strtok(linea, ",");
+        strncpy(libro.nombre, token, 300);
+        token = strtok(NULL, ",");
+        token++;
+        strncpy(libro.ISBN, token, 10);
+        //strcpy(libro.numEjemplares, token);
+        token = strtok(NULL, ", \n");
+        int num = atoi(token);
+        libro.numEjemplares = num;
+        libro.ejemplares = malloc(sizeof(struct Ejemplar)*num);
+        for(int i = 0; i < num; i++) {
+            struct Ejemplar ejemplar;
+            fgets(linea, 320, entrada);
+            token = strtok(linea, ",");
+            token = strtok(NULL, ",");
+            token++;
+            ejemplar.status = *token;
+            token = strtok(NULL, ",\n");
+            token++;
+            strncpy(ejemplar.fecha, token, 10);
+            libro.ejemplares[i] = ejemplar;
+        }
+        biblioteca.libros[pos++] = libro;
+    }
+    fclose(entrada);
+}
+
+
+void actualizarBD(struct Biblioteca biblioteca, char* fileDatos) {
+    FILE *file = fopen(fileDatos, "w");
+    if(file == NULL) {
+        printf("No se pudo actualizar la base de datos, el archivo %s no se pudo abrir", fileDatos);
+        return;
+    }
+
+    for(int i = 0; i < biblioteca.numLibros; i++) {
+        struct Libro libro = biblioteca.libros[i];
+        //Imprimir: Nombre, ISBN, numEjemplares
+        fprintf(file, "%s, %s, %i\n", libro.nombre, libro.ISBN, libro.numEjemplares);
+
+        for(int j = 0; j < libro.numEjemplares; j++) {
+            struct Ejemplar ejemplar = libro.ejemplares[j];
+            //Imprimir: Numero(desde el 1), Estado, Fecha
+            fprintf(file, "%i, %c, %s\n", j+1, ejemplar.status, ejemplar.fecha);
+        }
+    }
+    fclose(file);
+}
 
 void* input(void* args) {
     while(1) {
@@ -45,7 +145,7 @@ void* input(void* args) {
 }
 
 void imprimir_biblioteca() {
-    for(int i = 0; i < numLibros; i++) {
+    for(int i = 0; i < biblioteca.numLibros; i++) {
         struct Libro l = biblioteca.libros[i];
         printf("Libro: %s, ISBN: %s\n", l.nombre, l.ISBN);
         for(int j = 0; j < l.numEjemplares; j++) {
@@ -108,12 +208,12 @@ int main(int argc, char *argv[]) {
         }
         **/
 
-        generarRespuesta(sol);
+        generarRespuesta(sol, filedatos);
         //TODO Realiza la confirmación con la base de datos antes de mandar la respuesta. El resultado de esta confirmación se manda en la respuesta
     }
 }
 
-void generarRespuesta(struct Solicitud sol) {
+void generarRespuesta(struct Solicitud sol, char* fileDatos) {
     sem_t *semaforo = sem_open(SEMAFORO_SR, 0);
     sem_wait(semaforo);
     //Verificar base de datos...
@@ -126,7 +226,7 @@ void generarRespuesta(struct Solicitud sol) {
     int encontrado = 0;
     struct Libro libro;
     if(sol.operacion == 'D') {
-        for(int i = 0; i < numLibros && encontrado == 0; i++) {
+        for(int i = 0; i < biblioteca.numLibros && encontrado == 0; i++) {
             struct Libro l = biblioteca.libros[i];
             if(strcmp(l.ISBN, sol.ISBN) == 0) {
                 encontrado = 1;
@@ -141,7 +241,7 @@ void generarRespuesta(struct Solicitud sol) {
         }
     }
     else if(sol.operacion == 'R') {
-        for(int i = 0; i < numLibros && encontrado == 0; i++) {
+        for(int i = 0; i < biblioteca.numLibros && encontrado == 0; i++) {
             struct Libro l = biblioteca.libros[i];
             if(strcmp(l.ISBN, sol.ISBN) == 0) {
                 encontrado = 1;
@@ -157,7 +257,7 @@ void generarRespuesta(struct Solicitud sol) {
     }
     else { //Solicitar
         int indice_encontrado = -1;
-        for(int i = 0; i < numLibros && encontrado == 0; i++) {
+        for(int i = 0; i < biblioteca.numLibros && encontrado == 0; i++) {
             struct Libro l = biblioteca.libros[i];
             if(strcmp(l.ISBN, sol.ISBN) == 0) {
                 encontrado = 1;
@@ -186,86 +286,9 @@ void generarRespuesta(struct Solicitud sol) {
             }
         }
     }
-
     if(write(fd, respuesta, 300) == -1) {
         printf("Hubo un error al mandar la respuesta");
     }
     close(fd);
-}
-
-void cargarBDInicial(char* archivo) {
-    FILE *entrada = fopen(archivo, "r"); //Abre el archivo en forma de solo lectura
-    if(entrada == NULL) {
-        printf("Error, el archivo provisto no existe en la carpeta\n");
-        exit(-1);
-    }
-    char linea[320];
-    //Lee linea por linea. Cada linea corresponde a un proceso con la siguiente forma:
-    //OPERACION, NOMBRE DEL LIBRO, ISBN
-    //EJEMPLO: R, Hamlet, 234
-
-    //Tambíen se podría hacer de forma más sencilla por medio de tokenizer con la coma (,)
-    numLibros = 0;  
-    while(fgets(linea, 320, entrada) != NULL) {
-        struct Libro libro;
-        char* token = strtok(linea, ",");
-        strcpy(libro.nombre, token);
-        token = strtok(NULL, ",");
-        token++;
-        strcpy(libro.ISBN, token);
-        //strcpy(libro.numEjemplares, token);
-        token = strtok(NULL, ", \r\n");
-        int num = atoi(token);
-        libro.numEjemplares = num;
-        libro.ejemplares = malloc(sizeof(struct Ejemplar)*num);
-        numLibros++;
-        for(int i = 0; i < num; i++) {
-            struct Ejemplar ejemplar;
-            fgets(linea, 320, entrada);
-            token = strtok(linea, ",");
-            token = strtok(NULL, ",");
-            token++;
-            ejemplar.status = *token;
-            token = strtok(NULL, ",\n");
-            token++;
-            strcpy(ejemplar.fecha, token);
-            libro.ejemplares[i] = ejemplar;
-        }
-    }
-    biblioteca.libros = malloc(sizeof(struct Libro)*numLibros);
-    fclose(entrada);
-
-    entrada = fopen(archivo, "r"); //Abre el archivo en forma de solo lectura
-    if(entrada == NULL) {
-        printf("Error, el archivo provisto no existe en la carpeta\n");
-        exit(-1);
-    }
-    int pos = 0;
-    while(fgets(linea, 320, entrada) != NULL) {
-        struct Libro libro;
-        char* token = strtok(linea, ",");
-        strcpy(libro.nombre, token);
-        token = strtok(NULL, ",");
-        token++;
-        strcpy(libro.ISBN, token);
-        //strcpy(libro.numEjemplares, token);
-        token = strtok(NULL, ", \n");
-        int num = atoi(token);
-        libro.numEjemplares = num;
-        libro.ejemplares = malloc(sizeof(struct Ejemplar)*num);
-        for(int i = 0; i < num; i++) {
-            struct Ejemplar ejemplar;
-            fgets(linea, 320, entrada);
-            token = strtok(linea, ",");
-            token = strtok(NULL, ",");
-            token++;
-            ejemplar.status = *token;
-            token = strtok(NULL, ",\n");
-            token++;
-            strcpy(ejemplar.fecha, token);
-            libro.ejemplares[i] = ejemplar;
-        }
-        biblioteca.libros[pos++] = libro;
-    }
-    fclose(entrada);
+    actualizarBD(biblioteca, fileDatos);
 }
