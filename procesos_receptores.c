@@ -237,7 +237,22 @@ void generarRespuesta(struct Solicitud sol, char* fileDatos) {
             strcpy(respuesta, "El libro con el ISBN dado no se encontró en la base de datos");
         }
         else {
-            strcpy(respuesta, "La devolución del libro está en proceso");
+            int indice_encontrado = -1;
+            encontrado = 0;
+            int j;
+            for(j = 0; j < libro.numEjemplares && encontrado == 0; j++) {
+                struct Ejemplar ejemplar = libro.ejemplares[j];
+                if(ejemplar.status == 'P') {
+                    biblioteca.libros[indice_encontrado].ejemplares[j].status = 'D';
+                    encontrado = 1;
+                }
+            }
+            if(encontrado == 1) {
+                strcpy(respuesta, "La devolución del libro está en proceso");
+            }
+            else{
+                strcpy(respuesta, "El libro no está prestado");
+            }
         }
     }
     else if(sol.operacion == 'R') {
@@ -252,7 +267,21 @@ void generarRespuesta(struct Solicitud sol, char* fileDatos) {
             strcpy(respuesta, "El libro con el ISBN dado no se encontró en la base de datos");
         }
         else {
-            strcpy(respuesta, "La renovación de su libro está en proceso");
+            int indice_encontrado = -1;
+            encontrado = 0;
+            int j;
+            for(j = 0; j < libro.numEjemplares && encontrado == 0; j++) {
+                struct Ejemplar ejemplar = libro.ejemplares[j];
+                if(ejemplar.status == 'P') {
+                    encontrado = 1;
+                }
+            }
+            if(encontrado == 1) {
+                strcpy(respuesta, "La renovación se logró con éxito");
+            }
+            else{
+                strcpy(respuesta, "No hay préstamos disponibles");
+            }
         }
     }
     else { //Solicitar
