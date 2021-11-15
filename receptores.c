@@ -176,13 +176,12 @@ void* consumer(void* args) {
 }
 
 int main(int argc, char *argv[]) {
-    pthread_mutex_init(&mutexBuffer, NULL);
-    sem_init(&semEmpty, 0, 10);
-    sem_init(&semFull, 0, 0);
+    
     sem_open(SEMAFORO_SR, O_CREAT, 0644, 0);
     int contador = 0, entrada = 0;
     pthread_t id[2];
     pthread_create(&id[0], NULL, input, &buffer);
+
 
     char* pipeReceptor;
     if(argc == 7) { //Indica que entran todos los comandos
@@ -202,10 +201,9 @@ int main(int argc, char *argv[]) {
     cargarBDInicial(filedatos);
 
     //Crea el pipe principal para la recepción de procesos
-    crearFIFO(pipeReceptor);
+    crearFIFO(pipeReceptor);    
     pthread_t hilo[2];
-    pthread_create(&hilo[0], NULL, consumer, NULL);    
-
+    pthread_create(&hilo[0], NULL, &consumer, NULL);
 
     while(true) {
       //inciar proceso de recepción de solicitudes
@@ -216,7 +214,7 @@ int main(int argc, char *argv[]) {
         }
         struct Solicitud sol; //Variable productora
         read(fd, &sol, sizeof(struct Solicitud));
-        printf("Se recibió una solicitud: \n");
+        printf("Se recibió una solicitud: ");
         
         // Add to the buffer
         sem_wait(&semEmpty);
@@ -225,6 +223,7 @@ int main(int argc, char *argv[]) {
         count++;
         pthread_mutex_unlock(&mutexBuffer);
         sem_post(&semFull);
+        //TODO Realiza la confirmación con la base de datos antes de mandar la respuesta. El resultado de esta confirmación se manda en la respuesta
     }
 }
 
@@ -237,7 +236,6 @@ void generarRespuesta(struct Solicitud sol, char* fileDatos) {
         printf("Se produjo un error al abrir el archivo FIFO\n");
         return;
     }
-    int indice_encontrado = -1;
     char respuesta[300];
     int encontrado = 0;
     struct Libro libro;
@@ -245,7 +243,6 @@ void generarRespuesta(struct Solicitud sol, char* fileDatos) {
         for(int i = 0; i < biblioteca.numLibros && encontrado == 0; i++) {
             struct Libro l = biblioteca.libros[i];
             if(strcmp(l.ISBN, sol.ISBN) == 0) {
-                indice_encontrado = i;
                 encontrado = 1;
                 libro = l;
             }
@@ -254,6 +251,7 @@ void generarRespuesta(struct Solicitud sol, char* fileDatos) {
             strcpy(respuesta, "El libro con el ISBN dado no se encontró en la base de datos");
         }
         else {
+            int indice_encontrado = -1;
             encontrado = 0;
             int j;
             for(j = 0; j < libro.numEjemplares && encontrado == 0; j++) {
@@ -283,6 +281,7 @@ void generarRespuesta(struct Solicitud sol, char* fileDatos) {
             strcpy(respuesta, "El libro con el ISBN dado no se encontró en la base de datos");
         }
         else {
+            int indice_encontrado = -1;
             encontrado = 0;
             int j;
             for(j = 0; j < libro.numEjemplares && encontrado == 0; j++) {
