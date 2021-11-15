@@ -55,10 +55,9 @@ void cargarBDInicial(char* archivo) {
         char* token = strtok(linea, ",");
         strcpy(libro.nombre, token);
         token = strtok(NULL, ",");
-        token++;
         strcpy(libro.ISBN, token);
         //strcpy(libro.numEjemplares, token);
-        token = strtok(NULL, ", \r\n");
+        token = strtok(NULL, ",\r\n");
         int num = atoi(token);
         libro.numEjemplares = num;
         libro.ejemplares = malloc(sizeof(struct Ejemplar)*num);
@@ -68,11 +67,8 @@ void cargarBDInicial(char* archivo) {
             fgets(linea, 320, entrada);
             token = strtok(linea, ",");
             token = strtok(NULL, ",");
-            token++;
             ejemplar.status = *token;
             token = strtok(NULL, ",\n");
-            token++;
-            strcpy(ejemplar.fecha, token);
             libro.ejemplares[i] = ejemplar;
         }
     }
@@ -90,10 +86,9 @@ void cargarBDInicial(char* archivo) {
         char* token = strtok(linea, ",");
         strncpy(libro.nombre, token, 300);
         token = strtok(NULL, ",");
-        token++;
         strncpy(libro.ISBN, token, 10);
         //strcpy(libro.numEjemplares, token);
-        token = strtok(NULL, ", \n");
+        token = strtok(NULL, ",\n");
         int num = atoi(token);
         libro.numEjemplares = num;
         libro.ejemplares = malloc(sizeof(struct Ejemplar)*num);
@@ -102,10 +97,8 @@ void cargarBDInicial(char* archivo) {
             fgets(linea, 320, entrada);
             token = strtok(linea, ",");
             token = strtok(NULL, ",");
-            token++;
             ejemplar.status = *token;
             token = strtok(NULL, ",\n");
-            token++;
             strncpy(ejemplar.fecha, token, 10);
             libro.ejemplares[i] = ejemplar;
         }
@@ -125,12 +118,12 @@ void actualizarBD(struct Biblioteca biblioteca, char* fileDatos) {
     for(int i = 0; i < biblioteca.numLibros; i++) {
         struct Libro libro = biblioteca.libros[i];
         //Imprimir: Nombre, ISBN, numEjemplares
-        fprintf(file, "%s, %s, %i\n", libro.nombre, libro.ISBN, libro.numEjemplares);
+        fprintf(file, "%s,%s,%i\n", libro.nombre, libro.ISBN, libro.numEjemplares);
 
         for(int j = 0; j < libro.numEjemplares; j++) {
             struct Ejemplar ejemplar = libro.ejemplares[j];
             //Imprimir: Numero(desde el 1), Estado, Fecha
-            fprintf(file, "%i, %c, %s\n", j+1, ejemplar.status, ejemplar.fecha);
+            fprintf(file, "%i,%c,%s\n", j+1, ejemplar.status, ejemplar.fecha);
         }
     }
     fclose(file);
