@@ -1,6 +1,2 @@
-all:main.cpp procesos_receptores.c procesos_solicitantes.c#regla
-  #instrucciones
-procesos_receptores.c
-  gcc -std=c89 -o procesos_receptores procesos_receptores.c
-procesos_solicitantes.c
-  gcc -std=c89 -o procesos_receptores procesos_receptores.c#gcc -pthread -std=c89  -o  
+all: procesos_solicitantes.c procesos_receptores.c ; gcc -o ps procesos_solicitantes.c -g -lpthread ; cc -o pr procesos_receptores.c -g -lpthread
+clean: ; rm ps ; rm pr

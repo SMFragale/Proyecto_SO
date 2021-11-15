@@ -222,6 +222,7 @@ void generarRespuesta(struct Solicitud sol, char* fileDatos) {
         printf("Se produjo un error al abrir el archivo FIFO\n");
         return;
     }
+    int indice_encontrado = -1;
     char respuesta[300];
     int encontrado = 0;
     struct Libro libro;
@@ -229,6 +230,7 @@ void generarRespuesta(struct Solicitud sol, char* fileDatos) {
         for(int i = 0; i < biblioteca.numLibros && encontrado == 0; i++) {
             struct Libro l = biblioteca.libros[i];
             if(strcmp(l.ISBN, sol.ISBN) == 0) {
+                indice_encontrado = i;
                 encontrado = 1;
                 libro = l;
             }
@@ -237,7 +239,6 @@ void generarRespuesta(struct Solicitud sol, char* fileDatos) {
             strcpy(respuesta, "El libro con el ISBN dado no se encontró en la base de datos");
         }
         else {
-            int indice_encontrado = -1;
             encontrado = 0;
             int j;
             for(j = 0; j < libro.numEjemplares && encontrado == 0; j++) {
@@ -267,7 +268,6 @@ void generarRespuesta(struct Solicitud sol, char* fileDatos) {
             strcpy(respuesta, "El libro con el ISBN dado no se encontró en la base de datos");
         }
         else {
-            int indice_encontrado = -1;
             encontrado = 0;
             int j;
             for(j = 0; j < libro.numEjemplares && encontrado == 0; j++) {
