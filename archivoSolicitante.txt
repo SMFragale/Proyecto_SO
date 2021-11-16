@@ -1,5 +1,3 @@
-D, Alicia en el País de las Maravillas, 2133
-R, Hamlet, 234
-R, Historia de Colombia, 223
-P, Cálculo Diferencial, 120
-P, Algebra Lineal, 111
+R,Love Child,6829,3
+D,Touch,4980,3
+R,Among the Blacks,4073,1

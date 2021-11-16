@@ -127,10 +127,11 @@ void leerProcesos(char* nombrePipe, char* nombreArchivo) {
             struct Solicitud sol;
             sol.operacion = *token;
             token = strtok(NULL, ",");
-            token++;
             strcpy(sol.nombre_libro, token);
-            token = strtok(NULL, ", \n");
+            token = strtok(NULL, ",");
             strcpy(sol.ISBN, token);
+            token = strtok(NULL, ",");
+            //Numero de ejemplar
             procesamiento(nombrePipe, sol.operacion, sol.nombre_libro, sol.ISBN);
     }
         //Hacer algo con la línea leída

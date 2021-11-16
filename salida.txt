@@ -1,0 +1,80 @@
+African Folktales,5963,3
+1,D,28-08-2021African Folktales
+2,D,28-08-2021African Folktales
+3,D,28-08-2021African Folktales
+Love Child,6829,5
+1,D,28-08-2021Love Child
+2,D,28-08-2021Love Child
+3,P,28-08-2021Love Child
+4,D,28-08-2021Love Child
+5,P,28-08-2021Love Child
+How God Fix Jonah,6264,2
+1,P,28-08-2021How God Fix Jonah
+2,P,28-08-2021How God Fix Jonah
+Among the Blacks,4073,6
+1,P,28-08-2021Among the Blacks
+2,P,28-08-2021Among the Blacks
+3,P,28-08-2021Among the Blacks
+4,P,28-08-2021Among the Blacks
+5,P,28-08-2021Among the Blacks
+6,P,28-08-2021Among the Blacks
+The Gift of Love,6819,4
+1,D,28-08-2021The Gift of Love
+2,D,28-08-2021The Gift of Love
+3,D,28-08-2021The Gift of Love
+4,D,28-08-2021The Gift of Love
+Great Love Poems,6637,6
+1,P,28-08-2021Great Love Poems
+2,P,28-08-2021Great Love Poems
+3,D,28-08-2021Great Love Poems
+4,P,28-08-2021Great Love Poems
+5,P,28-08-2021Great Love Poems
+6,D,28-08-2021Great Love Poems
+Black Nature,3655,7
+1,P,28-08-2021Black Nature
+2,D,28-08-2021Black Nature
+3,D,28-08-2021Black Nature
+4,P,28-08-2021Black Nature
+5,P,28-08-2021Black Nature
+6,D,28-08-2021Black Nature
+7,P,28-08-2021Black Nature
+Touch,4980,5
+1,D,28-08-2021Touch
+2,D,28-08-2021Touch
+3,D,28-08-2021Touch
+4,P,28-08-2021Touch
+5,D,28-08-2021Touch
+The Top 500 Poems,3157,4
+1,P,28-08-2021The Top 500 Poems
+2,D,28-08-2021The Top 500 Poems
+3,D,28-08-2021The Top 500 Poems
+4,D,28-08-2021The Top 500 Poems
+Poems of New York,5983,3
+1,D,28-08-2021Poems of New York
+2,D,28-08-2021Poems of New York
+3,D,28-08-2021Poems of New York
+American Dreams,2841,4
+1,D,28-08-2021American Dreams
+2,P,28-08-2021American Dreams
+3,D,28-08-2021American Dreams
+4,P,28-08-2021American Dreams
+Nickel and Dimed,6434,2
+1,D,28-08-2021Nickel and Dimed
+2,P,28-08-2021Nickel and Dimed
+Immigrant Women,2610,2
+1,D,28-08-2021Immigrant Women
+2,P,28-08-2021Immigrant Women
+Rising Voices,3012,7
+1,D,28-08-2021Rising Voices
+2,D,28-08-2021Rising Voices
+3,P,28-08-2021Rising Voices
+4,P,28-08-2021Rising Voices
+5,D,28-08-2021Rising Voices
+6,P,28-08-2021Rising Voices
+7,P,28-08-2021Rising Voices
+Show & amp,1941,2
+1,P,28-08-2021Show & amp
+2,D,28-08-2021Show & amp
+dune,1967,2
+1,P,12-10-2021dune
+2,D,12-10-2021dune

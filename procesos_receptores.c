@@ -22,6 +22,7 @@ disponibles de cada libro, y si están prestados, la fecha de devolución.
 */
 
 void generarRespuesta(struct Solicitud sol, char* fileDatos);
+void generarRespuestaSinSalida(struct Solicitud sol);
 void cargarBDInicial(char* archivo);
 
 struct Solicitud buffer[N];
@@ -30,6 +31,7 @@ sem_t semFull;
 pthread_mutex_t mutexBuffer;
 int count = 0;
 char* filedatos;
+char* filesalida;
 
 char* archivo;
 struct Biblioteca biblioteca;
@@ -161,7 +163,12 @@ void* consumer(void* args) {
         sem_wait(&semFull);
         pthread_mutex_lock(&mutexBuffer);
         y = buffer[count - 1];
-        generarRespuesta(y, filedatos);
+        if(filesalida != NULL) {
+            generarRespuesta(y, filesalida);
+        }
+        else {
+            generarRespuestaSinSalida(y);
+        }
         count--;
         pthread_mutex_unlock(&mutexBuffer);
         sem_post(&semEmpty);
@@ -177,11 +184,13 @@ int main(int argc, char *argv[]) {
     pthread_t id[2];
     pthread_create(&id[0], NULL, input, &buffer);
 
+    filesalida = NULL;
+
     char* pipeReceptor;
     if(argc == 7) { //Indica que entran todos los comandos
         pipeReceptor = argv[2];
         filedatos = argv[4];
-        char* filesalida = argv[5];
+        filesalida = argv[6];
     }
     else if(argc == 5) { //Comandos sin el archivo de salida
         pipeReceptor = argv[2];
@@ -219,6 +228,114 @@ int main(int argc, char *argv[]) {
         pthread_mutex_unlock(&mutexBuffer);
         sem_post(&semFull);
     }
+}
+
+void generarRespuestaSinSalida(struct Solicitud sol) {
+    sem_t *semaforo = sem_open(SEMAFORO_SR, 0);
+    sem_wait(semaforo);
+    //Verificar base de datos...
+    int fd = open(sol.pipeProceso, O_WRONLY);
+    if(fd == -1) {
+        printf("Se produjo un error al abrir el archivo FIFO\n");
+        return;
+    }
+    int indice_encontrado = -1;
+    char respuesta[300];
+    int encontrado = 0;
+    struct Libro libro;
+    if(sol.operacion == 'D') {
+        for(int i = 0; i < biblioteca.numLibros && encontrado == 0; i++) {
+            struct Libro l = biblioteca.libros[i];
+            if(strcmp(l.ISBN, sol.ISBN) == 0) {
+                indice_encontrado = i;
+                encontrado = 1;
+                libro = l;
+            }
+        }
+        if(encontrado == 0) {
+            strcpy(respuesta, "El libro con el ISBN dado no se encontró en la base de datos");
+        }
+        else {
+            encontrado = 0;
+            int j;
+            for(j = 0; j < libro.numEjemplares && encontrado == 0; j++) {
+                struct Ejemplar ejemplar = libro.ejemplares[j];
+                if(ejemplar.status == 'P') {
+                    biblioteca.libros[indice_encontrado].ejemplares[j].status = 'D';
+                    encontrado = 1;
+                }
+            }
+            if(encontrado == 1) {
+                strcpy(respuesta, "La devolución del libro está en proceso");
+            }
+            else{
+                strcpy(respuesta, "El libro no está prestado");
+            }
+        }
+    }
+    else if(sol.operacion == 'R') {
+        for(int i = 0; i < biblioteca.numLibros && encontrado == 0; i++) {
+            struct Libro l = biblioteca.libros[i];
+            if(strcmp(l.ISBN, sol.ISBN) == 0) {
+                encontrado = 1;
+                libro = l;
+            }
+        }
+        if(encontrado == 0) {
+            strcpy(respuesta, "El libro con el ISBN dado no se encontró en la base de datos");
+        }
+        else {
+            encontrado = 0;
+            int j;
+            for(j = 0; j < libro.numEjemplares && encontrado == 0; j++) {
+                struct Ejemplar ejemplar = libro.ejemplares[j];
+                if(ejemplar.status == 'P') {
+                    encontrado = 1;
+                }
+            }
+            if(encontrado == 1) {
+                strcpy(respuesta, "La renovación se logró con éxito");
+            }
+            else{
+                strcpy(respuesta, "No hay préstamos disponibles");
+            }
+        }
+    }
+    else { //Solicitar
+        int indice_encontrado = -1;
+        for(int i = 0; i < biblioteca.numLibros && encontrado == 0; i++) {
+            struct Libro l = biblioteca.libros[i];
+            if(strcmp(l.ISBN, sol.ISBN) == 0) {
+                encontrado = 1;
+                libro = l;
+                indice_encontrado = i;
+            }
+        }
+        if(encontrado == 0) {
+            strcpy(respuesta, "El libro con el ISBN dado no se encontró en la base de datos");
+        }
+        else {
+            encontrado = 0;
+            int j;
+            for(j = 0; j < libro.numEjemplares && encontrado == 0; j++) {
+                struct Ejemplar ejemplar = libro.ejemplares[j];
+                if(ejemplar.status == 'D') {
+                    biblioteca.libros[indice_encontrado].ejemplares[j].status = 'P';
+                    encontrado = 1;
+                }
+            }
+            if(encontrado == 1) {
+                strcpy(respuesta, "El préstamo se logró con éxito");
+            }
+            else{
+                strcpy(respuesta, "No hay ejemplares disponibles de este libro");
+            }
+        }
+    }
+    if(write(fd, respuesta, 300) == -1) {
+        printf("Hubo un error al mandar la respuesta");
+    }
+    close(fd);
 }
 
 void generarRespuesta(struct Solicitud sol, char* fileDatos) {
